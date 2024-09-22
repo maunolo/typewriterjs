@@ -1,4 +1,3 @@
-import raf, { cancel as cancelRaf } from 'raf';
 import {
   doesStringContainHTMLTag,
   getDOMElementFromString,
@@ -139,7 +138,7 @@ class Typewriter {
    */
   stop = () => {
     if(this.state.eventLoop) {
-      cancelRaf(this.state.eventLoop);
+      window.cancelAnimationFrame(this.state.eventLoop);
       this.state.eventLoop = null;
     }
 
@@ -515,7 +514,7 @@ class Typewriter {
     }
 
     // Request next frame
-    this.state.eventLoop = raf(this.runEventLoop);
+    this.state.eventLoop = window.requestAnimationFrame(this.runEventLoop);
 
     // Check if event loop is paused
     if(this.state.eventLoopPaused) {

@@ -1,13 +1,7 @@
-import raf, { cancel as cancelRaf } from "raf";
 import Typewriter from "../Typewriter";
 import { EVENT_NAMES, VISIBLE_NODE_TYPES, STYLES } from "../constants";
 
 jest.useFakeTimers();
-jest.mock("raf", () => ({
-  __esModule: true,
-  default: jest.fn(),
-  cancel: jest.fn(),
-}));
 
 describe("Typewriter", () => {
   let wrapperElement;
@@ -19,10 +13,14 @@ describe("Typewriter", () => {
     wrapperElement.id = "test";
     document.body.appendChild(wrapperElement);
     document.head.appendChild = jest.fn((node) => (styleNode = node));
+    jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+    jest.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
   });
 
   afterEach(() => {
     styleNode = undefined;
+    window.requestAnimationFrame.mockRestore();
+    window.cancelAnimationFrame.mockRestore();
     jest.clearAllMocks();
   });
 
@@ -126,9 +124,10 @@ describe("Typewriter", () => {
     it("stop should correctly cancel event loop animation frame", () => {
       const test = window.requestAnimationFrame(() => {});
       instance.state.eventLoop = test;
+      expect(instance.state.eventLoop).toEqual(test);
       instance.stop();
       expect(instance.state.eventLoop).toEqual(null);
-      expect(cancelRaf).toHaveBeenCalledTimes(1);
+      expect(window.cancelAnimationFrame).toHaveBeenCalledTimes(1);
     });
 
     it("pauseFor should correctly add event item to queue", () => {
@@ -463,17 +462,15 @@ describe("Typewriter", () => {
       ];
 
       it("should call raf method correctly", () => {
-        raf.mockReset();
         instance.typeString("test").runEventLoop();
-        expect(raf).toHaveBeenCalledTimes(1);
+        expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
       });
 
       it("should not run if event queue is empty and loop option is false", () => {
         instance.options.loop = false;
         instance.state.eventQueue = [];
-        raf.mockReset();
         instance.runEventLoop();
-        expect(raf).toHaveBeenCalledTimes(0);
+        expect(window.requestAnimationFrame).toHaveBeenCalledTimes(0);
       });
 
       it("should reset queue correctly if event queue is empty and loop option is true", () => {
