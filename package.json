@@ -12,7 +12,7 @@
     "react typewriter effect"
   ],
   "files": [
-    "dist",
+    "src",
     "index.d.ts",
     "LICENSE",
     "readme.md"
